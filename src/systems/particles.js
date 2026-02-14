@@ -145,6 +145,7 @@ export function getCamera() { return camera; }
 export function getRenderer() { return renderer; }
 export function getComposer() { return composer; }
 
+export function getPoints() { return points; }
 export function getPositions() { return positions; }
 export function getBasePositions() { return basePositions; }
 export function getVelocities() { return velocities; }
