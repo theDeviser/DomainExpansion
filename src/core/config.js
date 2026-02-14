@@ -6,7 +6,7 @@
 export const CONFIG = {
   // Particles
   PARTICLE_COUNT: 12000,
-  PARTICLE_SIZE: 1.2,
+  PARTICLE_SIZE: 0.8,
   PARTICLE_SPREAD: 50,
   MIN_RADIUS: 2,
   IDLE_COLOR: [0.7, 0.8, 1.0],

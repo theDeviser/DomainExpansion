@@ -10,15 +10,16 @@ let camera = null;
 let active = false;
 let targetTheta = 0;
 let targetPhi = Math.PI / 2;
+let sensitivity = 1.0;
+let inertia = 0.05;
 
 function onMouseMove(e) {
   if (!active) return;
-  // Map mouse to spherical angles
-  const nx = (e.clientX / window.innerWidth) * 2 - 1;   // -1..1
-  const ny = -(e.clientY / window.innerHeight) * 2 + 1;  // -1..1
+  const nx = (e.clientX / window.innerWidth) * 2 - 1;
+  const ny = -(e.clientY / window.innerHeight) * 2 + 1;
 
-  targetTheta = nx * Math.PI * 0.4;          // ±72° horizontal
-  targetPhi = Math.PI / 2 + ny * Math.PI * 0.2; // ±36° vertical
+  targetTheta = nx * Math.PI * 0.4 * sensitivity;
+  targetPhi = Math.PI / 2 + ny * Math.PI * 0.2 * sensitivity;
 }
 
 /**
@@ -32,9 +33,14 @@ export function init(cam) {
 
 /**
  * Enable camera orbit (called when state → control).
+ * @param {Object} [opts] - Optional config
+ * @param {number} [opts.sensitivity=1.0] - Mouse angle multiplier
+ * @param {number} [opts.inertia=0.05] - Position lerp factor
  */
-export function enable() {
+export function enable(opts) {
   active = true;
+  sensitivity = opts?.sensitivity ?? 1.0;
+  inertia = opts?.inertia ?? 0.05;
 }
 
 /**
@@ -42,6 +48,8 @@ export function enable() {
  */
 export function disable() {
   active = false;
+  sensitivity = 1.0;
+  inertia = 0.05;
   if (!camera) return;
   camera.position.set(0, 0, CONFIG.CAM_DISTANCE);
   camera.lookAt(0, 0, 0);
@@ -59,9 +67,9 @@ export function tick() {
   const y = r * Math.cos(targetPhi);
   const z = r * Math.sin(targetPhi) * Math.cos(targetTheta);
 
-  // Smooth lerp toward target
-  camera.position.x += (x - camera.position.x) * 0.05;
-  camera.position.y += (y - camera.position.y) * 0.05;
-  camera.position.z += (z - camera.position.z) * 0.05;
+  // Smooth lerp toward target (uses configurable inertia)
+  camera.position.x += (x - camera.position.x) * inertia;
+  camera.position.y += (y - camera.position.y) * inertia;
+  camera.position.z += (z - camera.position.z) * inertia;
   camera.lookAt(0, 0, 0);
 }

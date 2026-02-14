@@ -11,6 +11,7 @@ import { CONFIG } from '../core/config.js';
 let scene, camera, renderer, composer, bloomPass;
 let points, positions, basePositions, velocities, colors;
 let onFrame = null; // per-frame hook set by app.js
+let timeScale = 1;
 
 /** Initialize the full Three.js pipeline. */
 export function init(canvas) {
@@ -71,10 +72,16 @@ export function init(canvas) {
     basePositions[i3 + 1] = y;
     basePositions[i3 + 2] = z;
 
-    // Subtle bluish-white idle tone
-    colors[i3]     = CONFIG.IDLE_COLOR[0];
-    colors[i3 + 1] = CONFIG.IDLE_COLOR[1];
-    colors[i3 + 2] = CONFIG.IDLE_COLOR[2];
+    // Subtle idle drift so the scene breathes
+    velocities[i3]     = (Math.random() - 0.5) * 0.08;
+    velocities[i3 + 1] = (Math.random() - 0.5) * 0.08;
+    velocities[i3 + 2] = (Math.random() - 0.5) * 0.08;
+
+    // Brightness variation for visual depth/size diversity
+    const b = 0.5 + Math.random() * 0.5;
+    colors[i3]     = CONFIG.IDLE_COLOR[0] * b;
+    colors[i3 + 1] = CONFIG.IDLE_COLOR[1] * b;
+    colors[i3 + 2] = CONFIG.IDLE_COLOR[2] * b;
   }
 
   geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
@@ -111,9 +118,10 @@ export function init(canvas) {
 
 /** Apply velocity → position each frame. */
 function update(dt) {
+  const scaled = dt * timeScale;
   const len = positions.length;
   for (let i = 0; i < len; i++) {
-    positions[i] += velocities[i] * dt;
+    positions[i] += velocities[i] * scaled;
   }
   points.geometry.attributes.position.needsUpdate = true;
   points.geometry.attributes.color.needsUpdate = true;
@@ -150,6 +158,7 @@ export function getPositions() { return positions; }
 export function getBasePositions() { return basePositions; }
 export function getVelocities() { return velocities; }
 export function getColors() { return colors; }
+export function setTimeScale(s) { timeScale = s; }
 
 // ── Internal ──
 
