@@ -65,8 +65,8 @@ export function reset(particles) {
     velocities[i] = 0;
   }
   for (let i = 0; i < count; i += 3) {
-    colors[i] = 0.4;
-    colors[i + 1] = 0.4;
-    colors[i + 2] = 0.4;
+    colors[i]     = CONFIG.IDLE_COLOR[0];
+    colors[i + 1] = CONFIG.IDLE_COLOR[1];
+    colors[i + 2] = CONFIG.IDLE_COLOR[2];
   }
 }
