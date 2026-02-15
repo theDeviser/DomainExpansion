@@ -6,23 +6,14 @@
  * Feel: embers launched outward then dragged down.
  */
 
-import * as THREE from 'three';
 import { CONFIG } from '../core/config.js';
 
-const BG_COLOR  = new THREE.Color(0x0f0000); // deep red-black
-const FOG_COLOR = new THREE.Color(0x200000); // dark red fog
-
-/** Apply Shrine visuals and motion. */
+/** Apply Shrine visuals and motion (atmosphere handled by app.js overwrite). */
 export function apply(particles) {
   const positions = particles.getPositions();
   const velocities = particles.getVelocities();
   const colors = particles.getColors();
-  const scene = particles.getScene();
   const count = CONFIG.PARTICLE_COUNT;
-
-  scene.background.copy(BG_COLOR);
-  scene.fog.color.copy(FOG_COLOR);
-  scene.fog.density = 0.025;
 
   for (let i = 0; i < count; i++) {
     const i3 = i * 3;
@@ -33,10 +24,10 @@ export function apply(particles) {
     const pz = positions[i3 + 2];
     const len = Math.sqrt(px * px + py * py + pz * pz) || 1;
 
-    // Controlled outward radiate with steady downward pull
-    const speed = 0.4 + Math.random() * 0.6;
+    // Heavy outward radiate with strong downward pull
+    const speed = 0.3 + Math.random() * 0.4;
     velocities[i3]     = (px / len) * speed;
-    velocities[i3 + 1] = (py / len) * speed - 0.4; // consistent gravity drift
+    velocities[i3 + 1] = (py / len) * speed - 0.5; // stronger gravity drift
     velocities[i3 + 2] = (pz / len) * speed;
 
     // Red-to-orange palette
@@ -58,7 +49,6 @@ export function reset(particles) {
 
   scene.background.setHex(0x000000);
   scene.fog.color.setHex(0x000000);
-  scene.fog.density = CONFIG.FOG_DENSITY;
 
   for (let i = 0; i < count; i++) {
     positions[i] = base[i];

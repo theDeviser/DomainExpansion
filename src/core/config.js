@@ -23,6 +23,11 @@ export const CONFIG = {
   FOG_DENSITY: 0.02,
   TONE_EXPOSURE: 0.9,
 
+  // Shrine Domain Overwrite
+  SHRINE_EXPOSURE: 0.6,
+  SHRINE_TIMESCALE: 0.85,
+  SHRINE_BLOOM: 1.1,
+
   // Camera
   CAM_DISTANCE: 60,
   CAM_FOV: 65,

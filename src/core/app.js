@@ -27,11 +27,16 @@ const SPIKE_SHAKE = 0.8;
 const FREEZE_DURATION = 250;
 const BURST_TIMESCALE = 1.3;
 
+const SHRINE_OVERWRITE_MS = 500;
+const SHRINE_FOG_RGB = [0.165, 0, 0];  // 0x2a0000
+const SHRINE_BG_RGB  = [0.071, 0, 0];  // 0x120000
+
 let spikeStart = 0;
 let shakeX = 0, shakeY = 0;
 let freezeStart = 0;
 let timeScale = 1;
 let timeScaleTarget = 1;
+let shrineOverwriteStart = 0;
 
 /** Per-frame hook — called every frame by the render loop. */
 function frameLoop(dt, time) {
@@ -114,6 +119,28 @@ function frameLoop(dt, time) {
     }
   }
 
+  // Shrine atmospheric overwrite (500ms smooth interpolation)
+  if (shrineOverwriteStart > 0) {
+    const elapsed = performance.now() - shrineOverwriteStart;
+    const t = Math.min(elapsed / SHRINE_OVERWRITE_MS, 1);
+    const ease = t * t * (3 - 2 * t); // smoothstep
+
+    scn.fog.color.setRGB(
+      ease * SHRINE_FOG_RGB[0],
+      ease * SHRINE_FOG_RGB[1],
+      ease * SHRINE_FOG_RGB[2]
+    );
+    scn.background.setRGB(
+      ease * SHRINE_BG_RGB[0],
+      ease * SHRINE_BG_RGB[1],
+      ease * SHRINE_BG_RGB[2]
+    );
+    ren.toneMappingExposure =
+      CONFIG.TONE_EXPOSURE + (CONFIG.SHRINE_EXPOSURE - CONFIG.TONE_EXPOSURE) * ease;
+
+    if (t >= 1) shrineOverwriteStart = 0;
+  }
+
   // Apply shake
   cam.position.x += shakeX;
   cam.position.y += shakeY;
@@ -155,9 +182,17 @@ function onGesture(domain) {
 function handleStateChange(newState) {
   switch (newState) {
     case 'active':
-      timeScaleTarget = BURST_TIMESCALE;
-      spikeStart = performance.now();
-      particles.setBloom(CONFIG.ACTIVE_BLOOM);
+      if (activeDomain === 'shrine') {
+        // Calm, oppressive transition -- no spike
+        timeScaleTarget = CONFIG.SHRINE_TIMESCALE;
+        shrineOverwriteStart = performance.now();
+        particles.setBloom(CONFIG.SHRINE_BLOOM);
+      } else {
+        // Existing burst logic for void/purple
+        timeScaleTarget = BURST_TIMESCALE;
+        spikeStart = performance.now();
+        particles.setBloom(CONFIG.ACTIVE_BLOOM);
+      }
       if (activeDomain && domains[activeDomain]) {
         domains[activeDomain].apply(particles);
       }
@@ -180,6 +215,7 @@ function handleStateChange(newState) {
       audio.stop();
       spikeStart = 0;
       freezeStart = 0;
+      shrineOverwriteStart = 0;
       shakeX = 0;
       shakeY = 0;
       timeScale = 1;
